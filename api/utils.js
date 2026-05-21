@@ -10,18 +10,27 @@ try {
   kvClient = null;
 }
 
-const usersFile = path.join(os.tmpdir(), "users.json");
+const repoUsersFile = path.join(process.cwd(), "users.json");
+const tmpUsersFile = path.join(os.tmpdir(), "users.json");
 const uploadsDir = path.join(os.tmpdir(), "uploads");
 let usersCache;
+
+function isVercel() {
+  return Boolean(process.env.VERCEL || process.env.VERCEL_ENV);
+}
+
+function isKVEnabled() {
+  return Boolean(kvClient && process.env.VERCEL_KV_URL);
+}
+
+function getUsersFilePath() {
+  return isVercel() ? tmpUsersFile : repoUsersFile;
+}
 
 function ensureDir(dir) {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
-}
-
-function isKVEnabled() {
-  return Boolean(kvClient && process.env.VERCEL_KV_URL);
 }
 
 async function loadUsers() {
@@ -39,14 +48,25 @@ async function loadUsers() {
     }
   }
 
+  const filePath = getUsersFilePath();
   try {
-    if (fs.existsSync(usersFile)) {
-      const data = fs.readFileSync(usersFile, "utf8");
+    if (fs.existsSync(filePath)) {
+      const data = fs.readFileSync(filePath, "utf8");
       usersCache = JSON.parse(data) || [];
       return usersCache;
     }
   } catch (err) {
     console.error("Erreur lecture users:", err);
+  }
+
+  if (isVercel() && fs.existsSync(repoUsersFile)) {
+    try {
+      const data = fs.readFileSync(repoUsersFile, "utf8");
+      usersCache = JSON.parse(data) || [];
+      return usersCache;
+    } catch (err) {
+      console.error("Erreur lecture users depuis le dépôt:", err);
+    }
   }
 
   usersCache = [];
@@ -64,8 +84,9 @@ async function saveUsers(users) {
     }
   }
 
+  const filePath = getUsersFilePath();
   try {
-    fs.writeFileSync(usersFile, JSON.stringify(users, null, 2), "utf8");
+    fs.writeFileSync(filePath, JSON.stringify(users, null, 2), "utf8");
   } catch (err) {
     console.error("Erreur sauvegarde users:", err);
   }
@@ -82,7 +103,7 @@ function respondJSON(res, statusCode, data) {
 }
 
 module.exports = {
-  usersFile,
+  repoUsersFile,
   uploadsDir,
   ensureUploadsDir,
   loadUsers,
