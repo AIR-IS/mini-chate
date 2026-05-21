@@ -34,7 +34,7 @@ function ensureDir(dir) {
 }
 
 async function loadUsers() {
-  if (usersCache) {
+  if (typeof usersCache !== "undefined") {
     return usersCache;
   }
 
@@ -46,6 +46,10 @@ async function loadUsers() {
     } catch (err) {
       console.error("Erreur lecture KV users:", err);
     }
+  }
+
+  if (isVercel() && !isKVEnabled()) {
+    console.warn("Vercel détecté sans KV : le stockage local /tmp n'est pas partagé entre les instances. Configurez VERCEL_KV_URL pour une persistance fiable.");
   }
 
   const filePath = getUsersFilePath();
