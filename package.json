@@ -89,11 +89,13 @@
     "util-deprecate": "^1.0.2",
     "vary": "^1.1.2",
     "wrappy": "^1.0.2",
-    "ws": "^8.18.3"
+    "ws": "^8.18.3",
+    "formidable": "^3.5.4"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node server.js",
+    "vercel-build": "echo \"No build needed\""
   },
   "keywords": [],
   "author": "",
