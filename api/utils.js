@@ -13,7 +13,7 @@ try {
 const repoUsersFile = path.join(process.cwd(), "users.json");
 const tmpUsersFile = path.join(os.tmpdir(), "users.json");
 const uploadsDir = path.join(os.tmpdir(), "uploads");
-let usersCache;
+let usersCache = null;
 
 function isVercel() {
   return Boolean(process.env.VERCEL || process.env.VERCEL_ENV);
@@ -34,10 +34,6 @@ function ensureDir(dir) {
 }
 
 async function loadUsers() {
-  if (typeof usersCache !== "undefined") {
-    return usersCache;
-  }
-
   if (isKVEnabled()) {
     try {
       const data = await kvClient.get("users");
